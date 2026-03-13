@@ -1,0 +1,31 @@
+from django.contrib import admin
+from .models import Product, ProductCategory, ProductImageModel
+
+@admin.register(Product)
+class CustomProductAdmin(admin.ModelAdmin):
+    models = Product
+    list_display = (
+        "id",
+        "title",
+        "stock",
+        "status",
+        "created_date",
+    )
+
+@admin.register(ProductCategory)
+class CustomProductCategoryAdmin(admin.ModelAdmin):
+    models = ProductCategory
+    list_display = (
+        "id",
+        "title",
+        "created_date",
+    )
+
+@admin.register(ProductImageModel)
+class CustomProductImageModelAdmin(admin.ModelAdmin):
+    models = ProductImageModel
+    list_display = (
+        "id",
+        "file",
+        "created_date",
+    )
