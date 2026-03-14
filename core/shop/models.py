@@ -24,7 +24,7 @@ class Product(models.Model):
         default='/default/product-img.png', upload_to='product/img/'
     )
     description = models.TextField()
-    breif_description = models.TextField(blank=True, null=True)
+    brief_description = models.TextField(blank=True, null=True)
     status = models.IntegerField(
         choices=ProductStatusType.choices,
         default=ProductStatusType.draft.value

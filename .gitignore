@@ -181,3 +181,4 @@ cython_debug/
 .cursorindexingignore
 
 postgres/data/*
+core/media/*
