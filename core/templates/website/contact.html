@@ -129,14 +129,15 @@
                 <!-- End Heading -->
 
                 <!-- Form -->
-                <form>
+                <form action="{% url 'website:submit-ticket' %}" method='post'>
+                    {% csrf_token %}
                     <div class="row gx-3">
                         <div class="col-sm-6">
                             <!-- Form -->
                             <div class="mb-3">
-                                <label class="form-label" for="hireUsFormFirstName">نام</label>
+                                <label class="form-label" for="first_name">نام</label>
                                 <input type="text" class="form-control form-control-lg"
-                                    name="hireUsFormNameFirstName" id="hireUsFormFirstName"
+                                    name="first_name" id="hireUsFormFirstName"
                                     placeholder="نام" aria-label="First name">
                             </div>
                             <!-- End Form -->
@@ -146,9 +147,9 @@
                         <div class="col-sm-6">
                             <!-- Form -->
                             <div class="mb-3">
-                                <label class="form-label" for="hireUsFormLasttName">نام خانوادگی</label>
+                                <label class="form-label" for="last_name">نام خانوادگی</label>
                                 <input type="text" class="form-control form-control-lg"
-                                    name="hireUsFormNameLastName" id="hireUsFormLasttName"
+                                    name="last_name" id="hireUsFormLasttName"
                                     placeholder="نام خانوادگی" aria-label="Last name">
                             </div>
                             <!-- End Form -->
@@ -161,9 +162,9 @@
                         <div class="col-sm-6">
                             <!-- Form -->
                             <div class="mb-3">
-                                <label class="form-label" for="hireUsFormWorkEmail">آدرس ایمیل</label>
+                                <label class="form-label" for="email">آدرس ایمیل</label>
                                 <input type="email" class="form-control form-control-lg"
-                                    name="hireUsFormNameWorkEmail" id="hireUsFormWorkEmail"
+                                    name="email" id="hireUsFormWorkEmail"
                                     placeholder="email@site.com" aria-label="email@site.com">
                             </div>
                             <!-- End Form -->
@@ -173,10 +174,10 @@
                         <div class="col-sm-6">
                             <!-- Form -->
                             <div class="mb-3">
-                                <label class="form-label" for="hireUsFormPhone">شماره همراه <span
+                                <label class="form-label" for="phone_number">شماره همراه <span
                                         class="form-label-secondary">(اختیاری)</span></label>
                                 <input type="text" class="form-control form-control-lg"
-                                    name="hireUsFormNamePhone" id="hireUsFormPhone"
+                                    name="phone_number" id="hireUsFormPhone"
                                     placeholder="+9891200000">
                             </div>
                             <!-- End Form -->
@@ -187,8 +188,8 @@
 
                     <!-- Form -->
                     <div class="mb-3">
-                        <label class="form-label" for="hireUsFormDetails">توضیحات</label>
-                        <textarea class="form-control form-control-lg" name="hireUsFormNameDetails"
+                        <label class="form-label" for="message">توضیحات</label>
+                        <textarea class="form-control form-control-lg" name="message"
                             id="hireUsFormDetails" placeholder="توضیحات خود را وارد نمایید"
                             aria-label="Tell us about your ..." rows="4"></textarea>
                     </div>
