@@ -41,6 +41,10 @@ class Product(models.Model):
     class Meta:
         ordering = ["-created_date"]
 
+    def get_price(self):
+        show_price = self.price - (self.price * self.discount_percent / 100)
+        return round(show_price)
+    
     def get_show_price(self):
         show_price = self.price - (self.price * self.discount_percent / 100)
         return '{:,}'.format(round(show_price))
