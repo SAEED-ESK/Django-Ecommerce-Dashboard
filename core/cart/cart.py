@@ -1,84 +1,108 @@
+from typing import List, Dict, Any
+from django.contrib.sessions.backends.base import SessionBase
 from shop.models import Product, ProductStatusType
 
 class CartSession:
-    def __init__(self, session):
-        self.session = session
-        self._cart = self.session.setdefault("cart",
-        {
-            "items": [],
-            "total_price": 0,
-            "total_items": 0
-        })
+    def __init__(self, session: SessionBase):
+        self.session: SessionBase = session
+        self._cart: Dict[str, Any] = self.session.setdefault(
+            "cart",
+            {
+                "items": [],
+                "total_price": 0,
+                "total_items": 0
+            }
+        )
 
-    def product_update_quantity(self, product_id, quantity):
-        for item in self._cart['items']:
-            if product_id == item['product_id']:
-                item['quantity'] = int(quantity)
-                break
-        else:
+    def _get_product_objects(self) -> Dict[int, Product]:
+        """تمام محصولات موجود در سبد را با یک کوئری دریافت می‌کند."""
+        product_ids = [item['product_id'] for item in self._cart['items']]
+        products = Product.objects.filter(
+            id__in=product_ids,
+            status=ProductStatusType.publish.value
+        )
+        return {product.id: product for product in products}
+
+    def _find_item(self, product_id: int):
+        """
+        یک متد کمکی برای پیدا کردن ایندکس و آیتم محصول در لیست.
+        """
+        for index, item in enumerate(self._cart['items']):
+            if item['product_id'] == product_id:
+                return index, item
+        return None, None
+
+    def add_or_update(self, product_id: int, quantity: int) -> None:
+        """
+        افزودن محصول به سبد یا به‌روزرسانی تعداد آن.
+        اگر محصول وجود نداشته باشد، ایجاد می‌شود.
+        اگر وجود داشته باشد، تعداد آن به مقدار جدید تغییر می‌کند.
+        """
+        quantity = int(quantity)
+        if quantity < 1:
             return
 
-        self.save()
+        index, item = self._find_item(product_id)
 
-    def add_product(self, product_id):
-        for item in self._cart['items']:
-            if product_id == item['product_id']:
-                item['quantity'] += 1
-                break
-
+        if item is not None:
+            # محصول وجود دارد: تعداد را آپدیت کن
+            self._cart['items'][index]['quantity'] = quantity
         else:
+            # محصول وجود ندارد: آیتم جدید بساز
             new_item = {
                 "product_id": product_id,
-                "quantity": 1,
+                "quantity": quantity,
             }
             self._cart['items'].append(new_item)
+        
         self.save()
 
-    def get_cart_dict(self):
+    def remove_product(self, product_id: int) -> None:
+        """
+        حذف محصول از سبد خرید.
+        """
+        original_length = len(self._cart['items'])
+        self._cart['items'] = [item for item in self._cart['items'] if item['product_id'] != product_id]
+        
+        if len(self._cart['items']) != original_length:
+            self.save()
+
+    def get_cart_dict(self) -> Dict[str, Any]:
         return self._cart
-    
-    def get_total_items(self):
-        cart_items = self._cart["items"]
-        for item in cart_items:
-            product_obj = Product.objects.get(
-                id=item['product_id'],
-                status=ProductStatusType.publish.value
-            )
-            item['product_obj'] = product_obj
-            item['total_price'] = int(item['quantity']) * product_obj.get_price()
 
-        return cart_items
-    
-    def total_quantity(self):
-        all_quantity = 0
+    def get_total_items(self) -> List[Dict[str, Any]]:
+        products_map = self._get_product_objects()
+        valid_items = []
+
         for item in self._cart['items']:
-            all_quantity += item['quantity']
+            product = products_map.get(int(item['product_id']))
+            if product:
+                item['product_obj'] = product
+                item['total_price'] = int(item['quantity']) * product.get_price()
+                valid_items.append(item)
+        
+        return valid_items
 
-        return all_quantity
-    
-    def get_total_payment_price(self):
-        total_payment_price = 0
+    def total_quantity(self) -> int:
+        return sum(item['quantity'] for item in self._cart['items'])
+
+    def get_total_payment_price(self) -> int:
+        total_price = 0
+        products_map = self._get_product_objects()
+        
         for item in self._cart['items']:
-            total_payment_price += item['total_price']
+            product = products_map.get(int(item['product_id']))
+            if product:
+                total_price += int(item['quantity']) * product.get_price()
+                
+        return total_price
 
-        return total_payment_price
-    
-    def remove_product(self, product_id):
-        for item in self._cart['items']:
-            if product_id == item['product_id']:
-                self._cart['items'].remove(item)
-                break
-        else:
-            return
-
-        self.save()
-
-    def clear(self):
+    def clear(self) -> None:
         self._cart = self.session['cart'] = {
             "items": [],
             "total_price": 0,
             "total_items": 0
         }
 
-    def save(self):
+    def save(self) -> None:
         self.session.modified = True

@@ -53,7 +53,7 @@
                     <div class="row">
                         <div class="col-auto">
                         <!-- Select -->
-                        <select class="form-select form-select-sm mb-3" onchange="changeProductQuantity('{{item.product_id}}', this.vlaue)">
+                        <select class="form-select form-select-sm mb-3" onchange="changeProductQuantity('{{item.product_id}}', this.value)">
                             {% with ''|center:item.product_obj.stock as range %}
                             {% for _ in range %}
                             <option value="{{ forloop.counter }}" {% if forloop.counter == item.quantity %}
@@ -98,7 +98,7 @@
         <!-- End List Group -->
 
         <div class="d-sm-flex justify-content-end">
-            <a class="link" href="/products-grid.html">
+            <a class="link" href="{% url 'shop:product-grid' %}">
             به خرید ادامه دهید <i class="bi-chevron-left small ms-1"></i>
             </a>
         </div>
@@ -183,6 +183,7 @@
     
             },
             success: function (response) {
+                console.log(quantity);
                 console.log(response);
                 window.location.reload();
                 // do something with the response data

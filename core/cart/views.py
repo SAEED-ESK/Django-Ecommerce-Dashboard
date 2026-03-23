@@ -8,7 +8,7 @@ class SessionAddProduct(View):
     def post(self, request, *args, **kwargs):
         cart = CartSession(request.session)
         product_id = request.POST.get('product_id')
-        cart.add_product(product_id)
+        cart.add_or_update(product_id=product_id, quantity=1)
         return JsonResponse(
             {
                 'cart': cart.get_cart_dict(), 
@@ -20,7 +20,7 @@ class SessionProductUpdateQuantityView(View):
         cart = CartSession(request.session)
         product_id = request.POST.get('product_id')
         quantity = request.POST.get('quantity')
-        cart.product_update_quantity(product_id, quantity)
+        cart.add_or_update(product_id, quantity)
         return JsonResponse(
             {
                 'cart': cart.get_cart_dict(), 
