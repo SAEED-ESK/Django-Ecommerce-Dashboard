@@ -38,6 +38,7 @@ class CartSession:
         اگر محصول وجود نداشته باشد، ایجاد می‌شود.
         اگر وجود داشته باشد، تعداد آن به مقدار جدید تغییر می‌کند.
         """
+        print('quantity: ', quantity)
         quantity = int(quantity)
         if quantity < 1:
             return

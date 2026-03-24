@@ -4,6 +4,8 @@ from django.views.generic import (
     DetailView,
 )
 from django.core.exceptions import FieldError
+
+from cart.cart import CartSession
 from .models import Product, ProductStatusType, ProductCategory
 
 class ProductGridView(ListView):
@@ -49,3 +51,9 @@ class ProductDetailView(DetailView):
     queryset = Product.objects.filter(
         status=ProductStatusType.publish.value
     )
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        cart = CartSession(self.request.session)
+        context['total_items'] = cart.get_total_items()
+        return context
