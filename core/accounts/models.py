@@ -74,21 +74,22 @@ class Profile(models.Model):
     user = models.OneToOneField(
         User, on_delete=models.CASCADE,
         related_name='profile',
-        primary_key=True
+        primary_key=True,
     )
     first_name = models.CharField(max_length=250)
     last_name = models.CharField(max_length=250)
     phone_number = models.CharField(
         max_length=12, validators=[validation_iranian_celephone_number]
     )
+    image = models.ImageField(upload_to='profile/img/', default='profile/default.jpg')
 
     created_date = models.DateTimeField(auto_now_add=True)
     updated_date = models.DateTimeField(auto_now=True)
 
     @property
-    def display_name(self):
+    def get_fullname(self):
         full_name = f"{self.first_name or ''} {self.last_name or ''}".strip()
-        return full_name or self.user.email
+        return full_name or "کاربر ناشناس"
 
     def __str__(self):
         return self.user.email
@@ -98,5 +99,5 @@ def save_profile(sender, instance, created, **kwargs):
     """
     Create a profile for user after user be created
     """
-    if created and instance.type == UserType.customer.value:
+    if created:
         Profile.objects.create(user=instance, pk=instance.pk)
