@@ -55,6 +55,9 @@ class Product(models.Model):
     def is_discounted(self):
         return self.discount_percent != 0
 
+    def is_published(self):
+        return self.status == ProductStatusType.publish.value
+
     def __str__(self):
         return self.title
 
