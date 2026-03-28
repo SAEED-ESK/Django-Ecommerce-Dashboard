@@ -1,6 +1,7 @@
 from django.contrib.auth import forms as auth_forms
 from django import forms
 from django.utils.translation import gettext_lazy as _
+from ckeditor.widgets import CKEditorWidget
 
 from shop.models import Product
 
@@ -19,6 +20,10 @@ class AdminProductEditForm(forms.ModelForm):
             'price',
             'discount_percent',
         ]
+        widgets = {
+            'description': CKEditorWidget(), # اتصال ویجت به فیلد
+            'brief_description': CKEditorWidget(), # اتصال ویجت به فیلد
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

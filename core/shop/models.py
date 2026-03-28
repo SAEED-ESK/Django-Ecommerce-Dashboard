@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
+from ckeditor.fields import RichTextField
 
 class ProductStatusType(models.IntegerChoices):
     publish = 1, ("نمایش")
@@ -23,8 +24,8 @@ class Product(models.Model):
     image = models.ImageField(
         default='/default/product-img.png', upload_to='product/img/'
     )
-    description = models.TextField()
-    brief_description = models.TextField(blank=True, null=True)
+    description = RichTextField(verbose_name="توضیحات محصول")
+    brief_description = RichTextField(verbose_name="توضیح مختصر محصول", blank=True, null=True)
     status = models.IntegerField(
         choices=ProductStatusType.choices,
         default=ProductStatusType.draft.value
