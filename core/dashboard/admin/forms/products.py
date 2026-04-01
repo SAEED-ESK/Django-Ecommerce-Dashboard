@@ -3,7 +3,7 @@ from django import forms
 from django.utils.translation import gettext_lazy as _
 from ckeditor.widgets import CKEditorWidget
 
-from shop.models import Product
+from shop.models import Product, ProductImageModel
 
 class AdminProductEditForm(forms.ModelForm):
     class Meta:
@@ -38,3 +38,12 @@ class AdminProductEditForm(forms.ModelForm):
         self.fields['stock'].widget.attrs['type'] = 'number'
         self.fields['price'].widget.attrs['class'] = 'form-control'
         self.fields['discount_percent'].widget.attrs['class'] = 'form-control'
+
+class AdminProductImageForm(forms.ModelForm):
+    class Meta:
+        model = ProductImageModel
+        fields = ["file"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['file'].widget.attrs['class'] = 'form-control'

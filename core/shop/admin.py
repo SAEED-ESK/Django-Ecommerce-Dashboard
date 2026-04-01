@@ -1,6 +1,11 @@
 from django.contrib import admin
 from .models import Product, ProductCategory, ProductImageModel
 
+class CustomProductImageModelAdmin(admin.TabularInline):
+    model = ProductImageModel
+    extra = 1
+    fields = ("file",)
+
 @admin.register(Product)
 class CustomProductAdmin(admin.ModelAdmin):
     models = Product

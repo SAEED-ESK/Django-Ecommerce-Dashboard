@@ -63,7 +63,7 @@ class Product(models.Model):
         return self.title
 
 class ProductImageModel(models.Model):
-    Product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='images')
     file = models.ImageField(upload_to='product/extra-img/')
 
     created_date = models.DateTimeField(auto_now_add=True)

@@ -122,7 +122,7 @@
             <!-- End Header -->
 
             <!-- Body -->
-            <form action="{% url 'dashboard:admin:home' %}" method="post"
+            <form action="{% url 'dashboard:admin:product-images-create' pk=object.pk %}" method="post"
                 enctype="multipart/form-data">
 
                 {% csrf_token %}
@@ -130,7 +130,7 @@
                     <div class="row d-flex align-items-center">
                         <div class="col-md-9 mb-3 d-flex align-items-center">
                             <label>تصویر محصول</label>
-                            {{image_form.file}}
+                            {{images_form.file}}
                         </div>
                         <div class="col-md-3 mb-3">
                             <button class="btn btn-primary ms-3" type="submit">ثبت تصویر</button>
@@ -143,11 +143,11 @@
 
             <div class="card-body">
                 <div class="row d-flex ">
-                    {% for product_image in object.product_images.all %}
+                    {% for image in object.images.all %}
                     <div class="col-md-2">
-                        <img class="img-fluid" style="width:100px; height:100px" src="{{product_image.file.url}}"
+                        <img class="img-fluid" style="width:100px; height:100px" src="{{image.file.url}}"
                             alt="Image Description">
-                        <form action="{% url 'dashboard:admin:home' %}" method="post">
+                        <form action="{% url 'dashboard:admin:product-images-remove' pk=object.pk image_id=image.pk %}" method="post">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-danger btn-sm">حذف تصویر</button>
                         </form>
