@@ -8,7 +8,11 @@ class SessionAddProduct(View):
     def post(self, request, *args, **kwargs):
         cart = CartSession(request.session)
         product_id = request.POST.get('product_id')
-        cart.add_or_update(product_id=product_id, quantity=1)
+        cart.add_or_update(
+            product_id=product_id, quantity=1, keyword='add'
+        )
+        if request.user.is_authenticated:
+            cart.merge_session_cart_in_db(request.user)
         return JsonResponse(
             {
                 'cart': cart.get_cart_dict(), 
@@ -20,7 +24,9 @@ class SessionProductUpdateQuantityView(View):
         cart = CartSession(request.session)
         product_id = request.POST.get('product_id')
         quantity = request.POST.get('quantity')
-        cart.add_or_update(product_id, quantity)
+        cart.add_or_update(product_id, quantity, 'update')
+        if request.user.is_authenticated:
+            cart.merge_session_cart_in_db(request.user)
         return JsonResponse(
             {
                 'cart': cart.get_cart_dict(), 
@@ -32,6 +38,8 @@ class SessionProductRemoveView(View):
         cart = CartSession(request.session)
         product_id = request.POST.get('product_id')
         cart.remove_product(product_id)
+        if request.user.is_authenticated:
+            cart.merge_session_cart_in_db(request.user)
         return JsonResponse(
             {
                 'cart': cart.get_cart_dict(), 

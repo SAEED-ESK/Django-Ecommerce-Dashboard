@@ -78,10 +78,10 @@
               <!-- End Search -->
 
               <!-- Shopping Cart -->
-              <a href="{% url 'cart:session-cart-summary' %}" class="btn btn-ghost-secondary btn-icon" type="button" data-bs-toggle="offcanvas">
+              <a href="{% url 'cart:session-cart-summary' %}" class="btn btn-ghost-secondary btn-icon" type="button">
                 <i class="bi-basket"></i>
                 <span class="cart-item-count " id="total-cart-item-count">{{cart.total_quantity}}</span>
-            </a>
+              </a>
               <!-- End Shopping Cart -->
             {% if request.user.is_authenticated %}
               <button class="btn btn-ghost-secondary btn-icon" id="dropdownMenuLink"

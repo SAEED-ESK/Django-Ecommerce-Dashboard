@@ -1,6 +1,7 @@
 from typing import List, Dict, Any
 from django.contrib.sessions.backends.base import SessionBase
 from shop.models import Product, ProductStatusType
+from .models import CartModel, CartItemModel
 
 class CartSession:
     def __init__(self, session: SessionBase):
@@ -32,13 +33,12 @@ class CartSession:
                 return index, item
         return None, None
 
-    def add_or_update(self, product_id: int, quantity: int) -> None:
+    def add_or_update(self, product_id: int, quantity: int, keyword: str) -> None:
         """
         افزودن محصول به سبد یا به‌روزرسانی تعداد آن.
         اگر محصول وجود نداشته باشد، ایجاد می‌شود.
         اگر وجود داشته باشد، تعداد آن به مقدار جدید تغییر می‌کند.
         """
-        print('quantity: ', quantity)
         quantity = int(quantity)
         if quantity < 1:
             return
@@ -46,8 +46,11 @@ class CartSession:
         index, item = self._find_item(product_id)
 
         if item is not None:
-            # محصول وجود دارد: تعداد را آپدیت کن
-            self._cart['items'][index]['quantity'] = quantity
+            if keyword == 'add':
+                # محصول وجود دارد: تعداد را آپدیت کن
+                self._cart['items'][index]['quantity'] += quantity
+            elif keyword == 'update':
+                self._cart['items'][index]['quantity'] = quantity
         else:
             # محصول وجود ندارد: آیتم جدید بساز
             new_item = {
@@ -107,3 +110,35 @@ class CartSession:
 
     def save(self) -> None:
         self.session.modified = True
+
+    def sync_cart_items_from_db(self, user):
+        cart, created = CartModel.objects.get_or_create(user=user)
+        cart_items = CartItemModel.objects.filter(cart=cart)
+        for cart_item in cart_items:
+            for item in self._cart['items']:
+                if str(cart_item.product.id) == item['product_id']:
+                    cart_item.quantity = item['quantity']
+                    cart_item.save()
+                    break
+            else:
+                new_item = {
+                "product_id": str(cart_item.product_id),
+                "quantity": cart_item.quantity,
+                }
+                self._cart['items'].append(new_item)
+        self.merge_session_cart_in_db(user)
+        self.save()
+
+    def merge_session_cart_in_db(self, user):
+        cart, created = CartModel.objects.get_or_create(user=user)
+        for item in self._cart['items']:
+            product_obj = Product.objects.get(
+                id=item['product_id'],
+                status=ProductStatusType.publish.value
+            )
+            cart_item, created = CartItemModel.objects.get_or_create(cart=cart, product=product_obj)
+            cart_item.quantity = item["quantity"]
+            cart_item.save()
+        
+        session_product_ids = [item['product_id'] for item in self._cart['items']]
+        CartItemModel.objects.filter(cart=cart).exclude(product__id__in=session_product_ids).delete()
