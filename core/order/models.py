@@ -3,10 +3,8 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 
 class OrderStatusType(models.IntegerChoices):
     pending = 1, 'در انتظار پرداخت'
-    processing = 2, 'در حال پردازش'
-    shipped = 3, 'ارسال شده'
-    delivered = 4, 'تحویل شده'
-    canceled = 5, 'لغو شده'
+    success = 2, 'پرداخت موفق'
+    failed = 3, 'پرداخت ناموفق'
 
 class UserAddressModel(models.Model):
     user = models.ForeignKey('accounts.User', on_delete=models.CASCADE)
@@ -47,6 +45,13 @@ class OrderModel(models.Model):
         default=OrderStatusType.pending.value
     )
     total_price = models.DecimalField(default=0, max_digits=10, decimal_places=0)
+
+    payment = models.ForeignKey(
+        'payment.PaymentModel',
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True
+    )
 
     # order address information
     address = models.CharField(max_length=250)

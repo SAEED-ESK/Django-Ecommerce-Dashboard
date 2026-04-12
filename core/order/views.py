@@ -1,14 +1,17 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.views.generic import TemplateView, FormView, View
 from django.urls import reverse_lazy
 from django.utils import timezone
+from django.shortcuts import redirect
 
 from .permissions import CustomerHasAccessPermission
 from .models import CouponModel, UserAddressModel, OrderModel, OrderItemModel
 from .forms import OrderCheckoutForm
 from cart.models import CartModel
 from cart.cart import CartSession
+from payment.zarinpal_client import ZarinPal
+from payment.models import PaymentModel
 from decimal import Decimal
 
 class OrderCheckoutView(
@@ -54,8 +57,22 @@ class OrderCheckoutView(
         order.save()
         cart.cart_items.all().delete()
         CartSession(self.request.session).clear()
+        return redirect(self.create_payment_url(order))
+    
+    def create_payment_url(self, order):
+        zarinpal = ZarinPal()
+        response = zarinpal.post_payment_request(order.total_price)
+        authority = response['data']['authority']
+        payment_obj = PaymentModel.objects.create(
+            authority_id = authority,
+            amount = order.total_price
+        )
+        order.payment = payment_obj
+        order.save()
+        url = zarinpal.generate_payment_url(authority)
 
-        return super().form_valid(form)
+        return url
+
     
     def form_invalid(self, form):
         return super().form_invalid(form)
@@ -75,6 +92,13 @@ class OrderCompletedView(
     TemplateView,
 ):
     template_name = 'order/completed.html'
+
+class OrderFailedView(
+    LoginRequiredMixin,
+    CustomerHasAccessPermission,
+    TemplateView,
+):
+    template_name = 'order/failed.html'
 
 class CouponCheckView(
     LoginRequiredMixin,
@@ -119,3 +143,7 @@ class CouponCheckView(
             },
                 status=status_code
         )
+    
+class VerifyView(View):
+    def get(self, request, *args, **kwargs):
+        return HttpResponse('verify')

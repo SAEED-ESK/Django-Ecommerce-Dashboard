@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'dashboard',
     'ckeditor',
     'order',
+    'payment',
 ]
 
 MIDDLEWARE = [
@@ -170,3 +171,6 @@ AUTH_USER_MODEL = 'accounts.User'
 
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
+
+# payment getway
+MERCHANT_ID = config("MERCHANT_ID", default='550e8400-e29b-41d4-a716-446655440000')

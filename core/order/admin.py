@@ -1,11 +1,5 @@
 from django.contrib import admin
-
-# Register your models here.
-from django.contrib import admin
 from .models import OrderModel, OrderItemModel, CouponModel, UserAddressModel
-
-# Register your models here.
-
 
 @admin.register(OrderModel)
 class OrderModelAdmin(admin.ModelAdmin):
@@ -17,7 +11,6 @@ class OrderModelAdmin(admin.ModelAdmin):
         "status",
         "created_date"
     )
-
 
 @admin.register(OrderItemModel)
 class OrderItemModelAdmin(admin.ModelAdmin):
