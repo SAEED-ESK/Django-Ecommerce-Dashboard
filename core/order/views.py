@@ -45,15 +45,13 @@ class OrderCheckoutView(
                 order=order,
                 product=item.product,
                 quantity=item.quantity,
-                price=item.product.get_price()
+                price=item.product.price
             )
-        total_price = order.calculate_total_price()
         if coupon:
-            total_price = total_price - round(total_price * Decimal(coupon.discount_percent / 100))
             order.coupon = coupon
             coupon.used_by.add(self.request.user)
 
-        order.total_price = total_price
+        order.total_price = order.calculate_total_price()
         order.save()
         cart.cart_items.all().delete()
         CartSession(self.request.session).clear()
@@ -61,18 +59,18 @@ class OrderCheckoutView(
     
     def create_payment_url(self, order):
         zarinpal = ZarinPal()
-        response = zarinpal.post_payment_request(order.total_price)
+        response = zarinpal.post_payment_request(order.get_price())
+        print(response)
         authority = response['data']['authority']
         payment_obj = PaymentModel.objects.create(
             authority_id = authority,
-            amount = order.total_price
+            amount = order.get_price()
         )
         order.payment = payment_obj
         order.save()
         url = zarinpal.generate_payment_url(authority)
 
         return url
-
     
     def form_invalid(self, form):
         return super().form_invalid(form)
@@ -143,7 +141,3 @@ class CouponCheckView(
             },
                 status=status_code
         )
-    
-class VerifyView(View):
-    def get(self, request, *args, **kwargs):
-        return HttpResponse('verify')
