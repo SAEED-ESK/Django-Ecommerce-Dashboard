@@ -1,5 +1,10 @@
 from django.contrib import admin
-from .models import Product, ProductCategory, ProductImageModel
+from .models import (
+    Product,
+    ProductCategory,
+    ProductImageModel,
+    WishlistProductModel
+)
 
 class CustomProductImageModelAdmin(admin.TabularInline):
     model = ProductImageModel
@@ -33,4 +38,13 @@ class CustomProductImageModelAdmin(admin.ModelAdmin):
         "id",
         "file",
         "created_date",
+    )
+
+@admin.register(WishlistProductModel)
+class CustomWishlistProductModelAdmin(admin.ModelAdmin):
+    models = WishlistProductModel
+    list_display = (
+        "id",
+        "user",
+        "product",
     )

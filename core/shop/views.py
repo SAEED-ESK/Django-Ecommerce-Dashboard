@@ -1,12 +1,18 @@
+from django.http import JsonResponse
 from django.views.generic import (
-    TemplateView,
+    View,
     ListView,
     DetailView,
 )
 from django.core.exceptions import FieldError
 
 from cart.cart import CartSession
-from .models import Product, ProductStatusType, ProductCategory
+from .models import (
+    Product,
+    ProductCategory,
+    WishlistProductModel,
+    ProductStatusType
+)
 
 class ProductGridView(ListView):
     template_name = 'shop/product_grid.html'
@@ -43,6 +49,8 @@ class ProductGridView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['total_items'] = self.get_queryset().count()
+        context['wishlist_items'] = WishlistProductModel.objects.filter(
+            user=self.request.user).values_list('product__id', flat=True) if self.request.user.is_authenticated else []
         context['categories'] = ProductCategory.objects.all()
         return context
 
@@ -55,5 +63,23 @@ class ProductDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         cart = CartSession(self.request.session)
+        product = self.get_object()
         context['total_items'] = cart.get_total_items()
+        context['is_wished'] = WishlistProductModel.objects.filter(
+            user=self.request.user, product__id=product.id).exists() if self.request.user.is_authenticated else False
         return context
+    
+class AddOrRemoveWishlistView(View):
+    def post(self, request, *args, **kwargs):
+        product_id = request.POST.get('product_id')
+        message = ''
+        if product_id:
+            try:
+                product_item = WishlistProductModel.objects.get(
+                    product__id=product_id, user_id=request.user)
+                product_item.delete()
+                message = 'محصول با موفقیت از علاقه مندی ها پاک شد.'
+            except WishlistProductModel.DoesNotExist:
+                WishlistProductModel.objects.create(product_id=product_id, user=request.user)
+                message = 'محصول با موفقیت به علاقه مندی ها اضافه شد.'
+        return JsonResponse({'message': message})

@@ -1,30 +1,29 @@
 from django.views.generic import (
-    ListView, DetailView
+    ListView, DeleteView
 )
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.messages.views import SuccessMessageMixin
 from django.core.exceptions import FieldError
+from django.urls import reverse_lazy
 
-from order.models import OrderModel, OrderStatusType
+from shop.models import WishlistProductModel
 from ...permissions import CustomerHasAccessPermission
 
-class CustomerOrderListView(
+class CustomerWishlistListView(
     LoginRequiredMixin,
     CustomerHasAccessPermission,
     ListView
     ):
-    template_name = 'dashboard/customer/orders/order-list.html'
+    template_name = 'dashboard/customer/wishlists/wishlist-list.html'
     paginate_by = 3
 
     def get_paginate_by(self, queryset):
         return self.request.GET.get('page_size', self.paginate_by)
 
     def get_queryset(self):
-        queryset = OrderModel.objects.filter(user=self.request.user)
-        order_by = self.request.GET.get('order_by')
-        status = self.request.GET.get('status')
+        queryset = WishlistProductModel.objects.filter(user=self.request.user)
+        order_by = self.request.GET.get('wishlist_by')
         search_q = self.request.GET.get('q')
-        if status:
-            queryset = queryset.filter(status=status)
         if search_q:
             queryset = queryset.filter(id__contains=search_q)
         if order_by:
@@ -37,15 +36,17 @@ class CustomerOrderListView(
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['total_items'] = self.get_queryset().count()
-        context['status_types'] = OrderStatusType.choices
         return context
     
-class CustomerOrderDetailView(
+class CustomerWishlistDeleteView(
     LoginRequiredMixin,
     CustomerHasAccessPermission,
-    DetailView
+    SuccessMessageMixin,
+    DeleteView
     ):
-    template_name = 'dashboard/customer/orders/order-detail.html'
+    http_method_names = ['post']
+    success_url = reverse_lazy('dashboard:customer:wishlist-list')
+    success_message = "محصول با موفقیت حذف شد."
 
     def get_queryset(self):
-        return OrderModel.objects.filter(user=self.request.user)
+        return WishlistProductModel.objects.filter(user=self.request.user)
