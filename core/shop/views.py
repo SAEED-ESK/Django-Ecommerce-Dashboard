@@ -13,6 +13,7 @@ from .models import (
     WishlistProductModel,
     ProductStatusType
 )
+from review.models import ReviewModel, ReviewStatusType
 
 class ProductGridView(ListView):
     template_name = 'shop/product_grid.html'
@@ -67,6 +68,7 @@ class ProductDetailView(DetailView):
         context['total_items'] = cart.get_total_items()
         context['is_wished'] = WishlistProductModel.objects.filter(
             user=self.request.user, product__id=product.id).exists() if self.request.user.is_authenticated else False
+        context['reviews'] = ReviewModel.objects.filter(product__id=product.id, status=ReviewStatusType.accepted.value)
         return context
     
 class AddOrRemoveWishlistView(View):
