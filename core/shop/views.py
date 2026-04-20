@@ -5,6 +5,7 @@ from django.views.generic import (
     DetailView,
 )
 from django.core.exceptions import FieldError
+from django.db.models import Count
 
 from cart.cart import CartSession
 from .models import (
@@ -69,7 +70,30 @@ class ProductDetailView(DetailView):
         context['is_wished'] = WishlistProductModel.objects.filter(
             user=self.request.user, product__id=product.id).exists() if self.request.user.is_authenticated else False
         context['reviews'] = ReviewModel.objects.filter(product__id=product.id, status=ReviewStatusType.accepted.value)
+        context["rating_percents"] = self.get_rating_percent_dict()
         return context
+    
+    def get_rating_percent_dict(self):
+        product = self.get_object()
+        rating_distribution = product.reviews.values('rate').annotate(count=Count('rate')).order_by('rate')
+    
+        # تبدیل به دیکشنری برای راحتی در قالب
+        rating_count_dict = {i: 0 for i in range(1, 6)}
+        for item in rating_distribution:
+            rating_count_dict[item["rate"]] = item["count"]
+
+        total_reviews = sum(rating_count_dict.values())
+
+        # avoid division by zero
+        if total_reviews == 0:
+            rating_percent_dict = {i: 0 for i in range(1, 6)}
+        else:
+            rating_percent_dict = {
+                i: round((count / total_reviews) * 100, 2)  # rounded to 2 decimal digits
+                for i, count in rating_count_dict.items()
+            }
+
+        return rating_percent_dict
     
 class AddOrRemoveWishlistView(View):
     def post(self, request, *args, **kwargs):
